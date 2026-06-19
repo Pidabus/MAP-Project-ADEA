@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 /// Follows Sprint 1 design rules: rounded 12, proper border colors, white bg
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
-  final String label;
+  final String label; // Label above the text box
   final String hint;
-  final IconData? prefixIcon;
+  final IconData? prefixIcon; 
   final bool obscureText;
   final Widget? suffixIcon;
-  final TextInputType keyboardType;
+  final TextInputType keyboardType; // phone will auto open user's text or number pad based on textinputtype.number or textinputtype.text.
   final String? Function(String?)? validator;
   final int maxLines;
 
