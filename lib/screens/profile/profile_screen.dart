@@ -8,6 +8,8 @@ import '../../models/task_model.dart';
 import '../../models/goal_model.dart';
 import '../../services/task_service.dart';
 import '../../services/goal_service.dart';
+import '../../services/auth_service.dart';
+import '../../widgets/custom_text_field.dart';
 
 /// Profile Screen — User info, edit name/preferences, logout matching Stitch Design
 class ProfileScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _userRepo = UserRepository();
   final _taskService = TaskService();
   final _goalService = GoalService();
+  final _authService = AuthService();
   bool _notificationsOn = true;
   bool _darkModeOn = false;
   bool _dailySummaryOn = true;
@@ -59,6 +62,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update preference: $e')));
       }
     }
+  }
+
+  Future<void> _saveDisplayName(String newName) async {
+    final state = context.read<AuthBloc>().state;
+    if (state is! AuthAuthenticated) return;
+
+    try {
+      await _userRepo.updateUser(state.user.uid, {'name': newName});
+      await _authService.updateDisplayName(newName);
+      if (!mounted) return;
+      context.read<AuthBloc>().add(AuthCheckRequested());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
+    }
+  }
+
+  void _showEditProfileDialog(String currentName) {
+    final nameController = TextEditingController(text: currentName);
+    final formKey = GlobalKey<FormState>();
+    var isSaving = false;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w700)),
+            content: Form(
+              key: formKey,
+              child: CustomTextField(
+                controller: nameController,
+                label: 'Display name',
+                hint: 'Enter your name',
+                prefixIcon: Icons.person_outline_rounded,
+                textInputAction: TextInputAction.done,
+                validator: (value) {
+                  if (value == null || value.trim().length < 2) {
+                    return 'Name must be at least 2 characters';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSaving ? null : () => Navigator.pop(dialogContext),
+                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+                        setDialogState(() => isSaving = true);
+                        final name = nameController.text.trim();
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                        await _saveDisplayName(name);
+                      },
+                child: isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Save'),
+              ),
+            ],
+          );
+        },
+      ),
+    ).whenComplete(nameController.dispose);
+  }
+
+  Future<void> _sendPasswordReset(String email) async {
+    try {
+      await _authService.resetPassword(email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password reset link sent to $email'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
+
+  void _showChangePasswordDialog(String email) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Text('We’ll send a reset link to $email so you can set a new password.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _sendPasswordReset(email);
+            },
+            child: const Text('Send link'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLogoutDialog() {
@@ -138,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(user.email, style: TextStyle(fontSize: 14, color: subtextColor)),
                       const SizedBox(height: 16),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () => _showEditProfileDialog(user.name),
                         style: TextButton.styleFrom(
                           backgroundColor: const Color(0xFFE6F1FB),
                           foregroundColor: const Color(0xFF185FA5),
@@ -189,11 +315,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 1))]),
                   child: Column(
                     children: [
-                      _menuItem('Edit Personal Info', Icons.person_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor),
+                      _menuItem('Edit Personal Info', Icons.person_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor, onTap: () => _showEditProfileDialog(user.name)),
                       Divider(height: 1, color: outlineColor.withOpacity(0.2)),
-                      _menuItem('Change Password', Icons.lock_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor),
+                      _menuItem('Change Password', Icons.lock_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor, onTap: () => _showChangePasswordDialog(user.email)),
                       Divider(height: 1, color: outlineColor.withOpacity(0.2)),
-                      _menuItem('Connected Accounts', Icons.link_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor, isLast: true),
+                      _menuItem('Connected Accounts', Icons.link_rounded, const Color(0xFF185FA5), const Color(0xFFE6F1FB), textColor, outlineColor, isLast: true, onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Signed in as ${user.email}'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -275,9 +408,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _menuItem(String title, IconData icon, Color iconColor, Color bgIconColor, Color textColor, Color outlineColor, {bool isLast = false}) {
+  Widget _menuItem(String title, IconData icon, Color iconColor, Color bgIconColor, Color textColor, Color outlineColor, {bool isLast = false, VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(16)) : null,
       child: Padding(
         padding: const EdgeInsets.all(16),

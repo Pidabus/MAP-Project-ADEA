@@ -29,8 +29,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
   late TextEditingController _amountController;
   late TextEditingController _budgetLimitController;
   late TextEditingController _baseBalanceController;
-  String _selectedType = 'expense';                  // Trackers: When your screen opens, the dropdown menus need a default value to show. These variables hold the default choices. 
-  String _selectedCategory = 'Food & Dining';        // If the user clicks the dropdown and changes it to "income," the UI will update this variable to remember their new choice.
+  late TextEditingController _searchController;
+  String _selectedType = 'expense';
+  String _selectedCategory = 'Food & Dining';
+  String _typeFilter = 'all';
   bool _isSavingBudget = false;
   bool _isSavingTransaction = false;
 
@@ -54,6 +56,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     _amountController = TextEditingController();
     _budgetLimitController = TextEditingController();
     _baseBalanceController = TextEditingController();
+    _searchController = TextEditingController();
   }
 
   @override
@@ -62,6 +65,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     _amountController.dispose();        // if not, the controllers will eat up the memory.
     _budgetLimitController.dispose();   // .dispose(): must actively remove the controllers. removed from memory. Basically, memory management.
     _baseBalanceController.dispose();
+    _searchController.dispose();
     super.dispose(); // Golden Rule: super.iniState() - FIRST line, super.dispose() - LAST line.
   }
 
@@ -736,10 +740,52 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: textColor)),
-                      Icon(Icons.filter_list_rounded, color: outlineColor, size: 20),
+                      Expanded(
+                        child: Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: textColor)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: 'Search title or category',
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            ),
+                      filled: true,
+                      isDense: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      FilterChip(
+                        label: const Text('All'),
+                        selected: _typeFilter == 'all',
+                        onSelected: (_) => setState(() => _typeFilter = 'all'),
+                      ),
+                      FilterChip(
+                        label: const Text('Income'),
+                        selected: _typeFilter == 'income',
+                        onSelected: (_) => setState(() => _typeFilter = 'income'),
+                      ),
+                      FilterChip(
+                        label: const Text('Expense'),
+                        selected: _typeFilter == 'expense',
+                        onSelected: (_) => setState(() => _typeFilter = 'expense'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -756,19 +802,25 @@ class _FinanceScreenState extends State<FinanceScreen> {
                         );
                       }
 
-                      final allTransactions = snapshot.data ?? [];
-                      final transactions = allTransactions
-                          .where((t) =>
-                              t.date.year == _selectedMonth.year &&
-                              t.date.month == _selectedMonth.month)
-                          .toList();
+                      final query = _searchController.text.trim().toLowerCase();
+                      final transactions = (snapshot.data ?? []).where((t) {
+                        final inMonth = t.date.year == _selectedMonth.year &&
+                            t.date.month == _selectedMonth.month;
+                        if (!inMonth) return false;
+                        if (_typeFilter != 'all' && t.type != _typeFilter) return false;
+                        if (query.isEmpty) return true;
+                        return t.title.toLowerCase().contains(query) ||
+                            t.category.toLowerCase().contains(query);
+                      }).toList();
 
                       if (transactions.isEmpty) {
                         return Center(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Text(
-                              'No transactions yet. Add one to get started!',
+                              query.isNotEmpty || _typeFilter != 'all'
+                                  ? 'No matching transactions this month.'
+                                  : 'No transactions yet. Add one to get started!',
                               style: TextStyle(color: subtextColor),
                             ),
                           ),
@@ -870,19 +922,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: outlineColor.withOpacity(0.5)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text('View All Activity', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: subtextColor)),
-                    ),
-                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
