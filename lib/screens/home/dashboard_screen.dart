@@ -803,6 +803,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             final name = state is AuthAuthenticated ? state.user.name : 'Productive';
+            final hour = DateTime.now().hour;
+            final greeting = hour < 12
+                ? 'Good morning'
+                : hour < 18
+                    ? 'Good afternoon'
+                    : 'Good evening';
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -815,7 +821,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  'Hello, $name! ✨',
+                  '$greeting, $name! ✨',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
