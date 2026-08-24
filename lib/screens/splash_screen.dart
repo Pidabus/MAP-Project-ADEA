@@ -6,8 +6,13 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0F0F1A) : Colors.white;
+    final titleColor = isDark ? Colors.white : const Color(0xFF004782);
+    final subtitleColor = isDark ? const Color(0xFFc2c6d2) : Colors.grey[600];
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -22,12 +27,12 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'AllInOne',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF004782),
+                color: titleColor,
               ),
             ),
             const SizedBox(height: 10),
@@ -35,7 +40,7 @@ class SplashScreen extends StatelessWidget {
               'Loading...',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: subtitleColor,
               ),
             ),
           ],

@@ -47,10 +47,10 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           maxLines: maxLines, // What are all these ":" ?
-          sytle: const TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             color: Color(0xFF1A1A2E), 
-          )
+          ),
         )
       ]
     )
