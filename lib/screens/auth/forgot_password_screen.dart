@@ -53,8 +53,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       },
       builder: (context, state) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final bgColor = isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF2F3F7);
+        final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+        final subtextColor = isDark ? const Color(0xFFc2c6d2) : const Color(0xFF6B7280);
+        final iconBg = isDark ? const Color(0xFF1A1A2E) : Colors.white;
+        final lockBg = isDark ? const Color(0xFF1A2A3E) : const Color(0xFFE6F1FB);
+
         return Scaffold(
-          backgroundColor: const Color(0xFFF2F3F7),
+          backgroundColor: bgColor,
           body: LoadingOverlay(
             isLoading: state is AuthLoading,
             child: SafeArea(
@@ -66,16 +73,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     const SizedBox(height: 20),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A2E), size: 22),
-                      style: IconButton.styleFrom(backgroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10)),
+                      icon: Icon(Icons.arrow_back_ios_rounded, color: textColor, size: 22),
+                      style: IconButton.styleFrom(backgroundColor: iconBg, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(10)),
                     ),
                     const SizedBox(height: 32),
-                    Container(width: 64, height: 64, decoration: BoxDecoration(color: const Color(0xFFE6F1FB), borderRadius: BorderRadius.circular(20)),
+                    Container(width: 64, height: 64, decoration: BoxDecoration(color: lockBg, borderRadius: BorderRadius.circular(20)),
                       child: const Icon(Icons.lock_reset_rounded, size: 32, color: Color(0xFF185FA5))),
                     const SizedBox(height: 24),
-                    const Text('Forgot\nPassword? 🔑', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E), height: 1.2)),
+                    Text('Forgot\nPassword? 🔑', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: textColor, height: 1.2)),
                     const SizedBox(height: 8),
-                    const Text("Enter your email and we'll send you a link to reset your password.", style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                    Text("Enter your email and we'll send you a link to reset your password.", style: TextStyle(fontSize: 14, color: subtextColor)),
                     const SizedBox(height: 32),
                     Form(
                       key: _formKey,
@@ -92,7 +99,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     const SizedBox(height: 28),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text('Remember your password? ', style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
+                      Text('Remember your password? ', style: TextStyle(color: subtextColor, fontSize: 14)),
                       GestureDetector(onTap: () => Navigator.pop(context), child: const Text('Sign In', style: TextStyle(color: Color(0xFF185FA5), fontWeight: FontWeight.w700, fontSize: 14))),
                     ]),
                   ],

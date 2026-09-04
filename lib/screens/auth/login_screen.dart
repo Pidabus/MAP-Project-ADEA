@@ -4,6 +4,8 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../widgets/loading_overlay.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/primary_button.dart';
 
 /// Login Screen — Email/password authentication matching Stitch Design
 class LoginScreen extends StatefulWidget {
@@ -131,99 +133,49 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Form
                         Form(
                           key: _formKey,
-                          child: Column(
+                          child: AutofillGroup(
+                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Email Address',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: const Color(0xFF727782),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextFormField(
+                              CustomTextField(
                                 controller: _emailController,
+                                label: 'Email Address',
+                                hint: 'name@example.com',
+                                prefixIcon: Icons.mail_outline_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
-                                  hintText: 'name@example.com',
-                                  hintStyle: TextStyle(color: outlineColor),
-                                  prefixIcon: Icon(
-                                    Icons.mail_outline_rounded,
-                                    color: const Color(0xFF727782),
-                                  ),
-                                  filled: true,
-                                  fillColor: bgColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: outlineColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: outlineColor),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: primaryContainer,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.email],
                                 validator: (v) =>
-                                    v!.isEmpty ? 'Enter email' : null,
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter email'
+                                        : null,
                               ),
                               const SizedBox(height: 20),
-                              Text(
-                                'Password',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: const Color(0xFF727782),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextFormField(
+                              CustomTextField(
                                 controller: _passwordController,
+                                label: 'Password',
+                                hint: '••••••••',
+                                prefixIcon: Icons.lock_outline_rounded,
                                 obscureText: !_isPasswordVisible,
-                                decoration: InputDecoration(
-                                  hintText: '••••••••',
-                                  hintStyle: TextStyle(color: outlineColor),
-                                  prefixIcon: Icon(
-                                    Icons.lock_outline_rounded,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [AutofillHints.password],
+                                onFieldSubmitted: (_) => _handleLogin(),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
                                     color: const Color(0xFF727782),
                                   ),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _isPasswordVisible
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: const Color(0xFF727782),
-                                    ),
-                                    onPressed: () => setState(
-                                      () => _isPasswordVisible =
-                                          !_isPasswordVisible,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: bgColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: outlineColor),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: outlineColor),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: primaryContainer,
-                                      width: 2,
-                                    ),
+                                  onPressed: () => setState(
+                                    () => _isPasswordVisible =
+                                        !_isPasswordVisible,
                                   ),
                                 ),
                                 validator: (v) =>
-                                    v!.isEmpty ? 'Enter password' : null,
+                                    (v == null || v.isEmpty)
+                                        ? 'Enter password'
+                                        : null,
                               ),
 
                               // Forgot password link
@@ -251,30 +203,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              // Log in button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 52,
-                                child: ElevatedButton(
-                                  onPressed: _handleLogin,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryContainer,
-                                    foregroundColor: Colors.white,
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Log in',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
+                              PrimaryButton(
+                                text: 'Log in',
+                                onPressed: _handleLogin,
+                                isLoading: state is AuthLoading,
                               ),
                             ],
+                            ),
                           ),
                         ),
 

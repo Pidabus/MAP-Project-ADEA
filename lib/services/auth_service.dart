@@ -64,6 +64,16 @@ class AuthService {
     }
   }
 
+  /// Update Firebase Auth display name
+  Future<void> updateDisplayName(String displayName) async {
+    try {
+      await _auth.currentUser?.updateDisplayName(displayName.trim());
+      await _auth.currentUser?.reload();
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
   /// Send password reset email
   Future<void> resetPassword(String email) async {
     try {

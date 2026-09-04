@@ -59,8 +59,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       },
       builder: (context, state) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final bgColor = isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF2F3F7);
+        final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+        final subtextColor = isDark ? const Color(0xFFc2c6d2) : const Color(0xFF6B7280);
+        final iconBg = isDark ? const Color(0xFF1A1A2E) : Colors.white;
+        final dividerColor = isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade300;
+
         return Scaffold(
-          backgroundColor: const Color(0xFFF2F3F7),
+          backgroundColor: bgColor,
           body: LoadingOverlay(
             isLoading: state is AuthLoading,
             child: SafeArea(
@@ -72,17 +79,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 20),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A2E), size: 22),
+                      icon: Icon(Icons.arrow_back_ios_rounded, color: textColor, size: 22),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: iconBg,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.all(10),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text('Create\nAccount ✨', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E), height: 1.2)),
+                    Text('Create\nAccount ✨', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: textColor, height: 1.2)),
                     const SizedBox(height: 8),
-                    const Text('Start your journey to a more organized life', style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+                    Text('Start your journey to a more organized life', style: TextStyle(fontSize: 14, color: subtextColor)),
                     const SizedBox(height: 32),
                     Form(
                       key: _formKey,
@@ -120,23 +127,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 28),
                     Row(children: [
-                      Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('Or sign up with', style: TextStyle(color: Colors.grey.shade500, fontSize: 12))),
-                      Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+                      Expanded(child: Divider(color: dividerColor, thickness: 1)),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('Or sign up with', style: TextStyle(color: subtextColor, fontSize: 12))),
+                      Expanded(child: Divider(color: dividerColor, thickness: 1)),
                     ]),
                     const SizedBox(height: 20),
                     SizedBox(width: double.infinity, height: 52, child: OutlinedButton(
                       onPressed: () => context.read<AuthBloc>().add(LoginWithGoogleEvent()),
-                      style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey.shade300), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      style: OutlinedButton.styleFrom(side: BorderSide(color: dividerColor), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         const Text('G', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF4285F4))),
                         const SizedBox(width: 12),
-                        const Text('Sign up with Google', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
+                        Text('Sign up with Google', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor)),
                       ]),
                     )),
                     const SizedBox(height: 28),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const Text('Already have an account? ', style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
+                      Text('Already have an account? ', style: TextStyle(color: subtextColor, fontSize: 14)),
                       GestureDetector(onTap: () => Navigator.pop(context), child: const Text('Sign In', style: TextStyle(color: Color(0xFF185FA5), fontWeight: FontWeight.w700, fontSize: 14))),
                     ]),
                     const SizedBox(height: 30),

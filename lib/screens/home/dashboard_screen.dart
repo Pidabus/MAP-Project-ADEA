@@ -802,7 +802,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         title: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            final name = state is AuthAuthenticated ? state.user.name : 'Productive';
+            final fullName =
+                state is AuthAuthenticated ? state.user.name : 'Productive';
+            final name = fullName.trim().split(RegExp(r'\s+')).first;
+            final hour = DateTime.now().hour;
+            final greeting = hour < 12
+                ? 'Good morning'
+                : hour < 18
+                    ? 'Good afternoon'
+                    : 'Good evening';
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -815,7 +823,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  'Hello, $name! ✨',
+                  '$greeting, $name! ✨',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -874,7 +882,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           title: 'Finance',
                           icon: Icons.payments_rounded,
                           color: const Color(0xFF4285F4),
-                          content: 'RM ${balance.toStringAsFixed(2)}',
+                          content: _formatRm(balance),
                           subcontent: 'Last: $lastTx',
                           onTap: () => widget.onTabSwitch?.call(1),
                         );
@@ -1047,5 +1055,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  String _formatRm(double amount) {
+    final formatted = amount.toStringAsFixed(2);
+    final parts = formatted.split('.');
+    final whole = parts[0].replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]},',
+    );
+    return 'RM $whole.${parts[1]}';
   }
 }
